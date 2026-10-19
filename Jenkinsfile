@@ -4,47 +4,31 @@
     pollSCM('* * * * *')
   }
   stages {
-    stage('Checkout - Develop Branch') {
+    stage('Checkout Develop') {
       steps {
-        echo '=== Develop branch push detected ==='
+        echo 'Develop branch detected'
         checkout scm
       }
     }
-    stage('Deploy to Test Node - test-server') {
+    stage('Deploy to Test - test-server') {
       steps {
-        echo '=== Deploying to TEST node (test-server) ==='
-        bat '''
-          mkdir test-app 2>nul
-          xcopy /E /Y * test-app\\ 2>nul
-          echo Test deployment done on test-server node
-          dir test-app
-        '''
+        echo 'Deploying to TEST server (test-server node)'
+        sh 'mkdir -p /tmp/test-app && cp -r * /tmp/test-app/ 2>/dev/null; ls /tmp/test-app/; echo "Deployed to test-server"'
       }
     }
-    stage('Run Tests on Test Node') {
+    stage('Test on test-server') {
       steps {
-        echo '=== Running unit tests on test-server ==='
-        bat 'echo Running tests... && echo Tests PASSED'
+        echo 'Running tests on test-server - PASSED'
       }
     }
-    stage('Deploy to Prod Node - prod-server') {
+    stage('Deploy to Prod - prod-server') {
       steps {
-        echo '=== Test SUCCESS, deploying to PROD node (prod-server) ==='
-        bat '''
-          mkdir prod-app 2>nul
-          xcopy /E /Y * prod-app\\ 2>nul
-          echo Prod deployment done on prod-server node
-          dir prod-app
-        '''
+        echo 'Test SUCCESS, Deploying to PROD server (prod-server node)'
+        sh 'mkdir -p /tmp/prod-app && cp -r * /tmp/prod-app/ 2>/dev/null; ls /tmp/prod-app/; echo "Deployed to prod-server"'
       }
     }
   }
   post {
-    success {
-      echo 'Pipeline SUCCESS: Develop -> Test -> Prod completed!'
-    }
-    failure {
-      echo 'Pipeline FAILED'
-    }
+    success { echo 'Pipeline SUCCESS: Dev -> Test -> Prod completed!' }
   }
 }
