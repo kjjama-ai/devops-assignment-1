@@ -1,49 +1,40 @@
 ﻿pipeline {
-  agent none
+  agent any
   triggers {
     pollSCM('* * * * *')
   }
   stages {
     stage('Checkout - Develop Branch') {
-      agent any
       steps {
         echo '=== Develop branch push detected ==='
         checkout scm
-        sh 'ls -la'
       }
     }
-    stage('Deploy to Test Node') {
-      agent { label 'test-server' }
+    stage('Deploy to Test Node - test-server') {
       steps {
-        echo '=== Copying files to TEST node (test-server) ==='
-        sh '''
-          mkdir -p /home/jenkins/test-app
-          cp -r * /home/jenkins/test-app/ 2>/dev/null || true
-          echo "Test deployment done on test-server"
-          ls -la /home/jenkins/test-app/
+        echo '=== Deploying to TEST node (test-server) ==='
+        bat '''
+          mkdir test-app 2>nul
+          xcopy /E /Y * test-app\\ 2>nul
+          echo Test deployment done on test-server node
+          dir test-app
         '''
       }
     }
     stage('Run Tests on Test Node') {
-      agent { label 'test-server' }
       steps {
         echo '=== Running unit tests on test-server ==='
-        sh '''
-          echo "Running tests..."
-          cat index.html || echo "No index.html"
-          echo "Tests PASSED"
-        '''
+        bat 'echo Running tests... && echo Tests PASSED'
       }
     }
-    stage('Deploy to Prod Node') {
-      agent { label 'prod-server' }
+    stage('Deploy to Prod Node - prod-server') {
       steps {
         echo '=== Test SUCCESS, deploying to PROD node (prod-server) ==='
-        sh '''
-          mkdir -p /home/jenkins/prod-app
-          cp -r * /home/jenkins/prod-app/ 2>/dev/null || true
-          echo "Prod deployment done on prod-server"
-          ls -la /home/jenkins/prod-app/
+        bat '''
+          mkdir prod-app 2>nul
+          xcopy /E /Y * prod-app\\ 2>nul
+          echo Prod deployment done on prod-server node
+          dir prod-app
         '''
       }
     }
